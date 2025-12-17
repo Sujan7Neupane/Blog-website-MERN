@@ -5,7 +5,6 @@ import { Post } from "../models/post.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const createPost = asyncHandler(async (req, res) => {
-  //get details from front-end
   console.log("USER:", req.user);
   const { title, content, status } = req.body;
 
@@ -14,11 +13,16 @@ const createPost = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Featured image is required!" });
   }
 
-  const featuredImage = await uploadOnCloudinary(req.file.path);
+  // Upload buffer to Cloudinary
+  const featuredImage = await uploadOnCloudinary(
+    req.file.buffer,
+    req.file.originalname
+  );
   if (!featuredImage) {
     return res.status(500).json({ message: "Failed to upload image" });
   }
 
+  // Create post in database
   const post = await Post.create({
     title: title.trim(),
     content,
