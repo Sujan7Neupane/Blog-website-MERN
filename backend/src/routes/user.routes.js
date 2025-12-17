@@ -6,24 +6,12 @@ import {
   userLogout,
   userRegister,
 } from "../controllers/user.controller.js";
-import { upload } from "../middlewares/multer.middlware.js";
+// import { upload } from "../middlewares/multer.middlware.js";
 import verifyJwt from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/register").post(
-  upload.fields([
-    {
-      name: "profileImage",
-      maxCount: 1,
-    },
-    {
-      name: "coverImage",
-      maxCount: 1,
-    },
-  ]),
-  userRegister
-);
+router.route("/register").post(userRegister);
 
 router.route("/login").post(userLogin);
 

@@ -9,27 +9,34 @@ const createPost = asyncHandler(async (req, res) => {
   console.log("USER:", req.user);
   const { title, content, status } = req.body;
 
-  // Check if file exists
-  if (!req.file) {
-    return res.status(400).json({ message: "Featured image is required!" });
+  const fields = { title, content, status };
+
+  for (const [key, value] of Object.entries(fields)) {
+    if (!value || value.trim() === "") {
+      throw new ApiError(400, `${key} cannot be empty!`);
+    }
+  }
+  const existingPost = await Post.findOne({ title: title.trim() });
+  if (existingPost) {
+    throw new ApiError(400, "Post already exists!");
   }
 
-  let featuredImage;
-  try {
-    featuredImage = await uploadOnCloudinary(
-      req.file.path,
-      Date.now().toString()
-    );
-  } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    return res.status(500).json({ message: "Failed to upload image" });
+  const featuredImageLocalPath = req.file?.path;
+
+  if (!featuredImageLocalPath) {
+    throw new ApiError(400, "featuredImageLocalPath is missing!");
+  }
+
+  const featuredImage = await uploadOnCloudinary(featuredImageLocalPath);
+  if (!featuredImage) {
+    throw new ApiError(400, "Featured Image is required!");
   }
 
   const post = await Post.create({
     title: title.trim(),
     content,
     status,
-    featuredImage: featuredImage.secure_url,
+    featuredImage: featuredImage.url || "",
     postedBy: req.user._id,
   });
 
