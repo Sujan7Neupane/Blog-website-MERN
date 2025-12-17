@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import validator from "validator";
 
 // Helper: generate access and refresh tokens
 const generateTokens = async (userId) => {
@@ -28,11 +29,11 @@ const getCookieOptions = () => ({
 
 // REGISTER
 const userRegister = asyncHandler(async (req, res) => {
-  const { name, username, email, password } = req.body;
+  const { fullName, username, email, password } = req.body;
 
   //   Checking empty fields
   if (
-    [name, username, email, password].some(
+    [fullName, username, email, password].some(
       (field) => !field || field.trim() === ""
     )
   ) {
@@ -59,7 +60,7 @@ const userRegister = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({
-    name,
+    fullName,
     username: username.toLowerCase(),
     email,
     password,
@@ -75,13 +76,7 @@ const userRegister = asyncHandler(async (req, res) => {
     .status(200)
     .cookie("accessToken", accessToken, getCookieOptions())
     .cookie("refreshToken", refreshToken, getCookieOptions())
-    .json(
-      new ApiResponse(
-        200,
-        { user: registeredUser },
-        "User Registered Successfully!"
-      )
-    );
+    .json(new ApiResponse(200, registeredUser, "User registered successfully"));
 });
 
 // LOGIN
